@@ -42,7 +42,8 @@ def collect_human_trajectory(env, device, arm, env_configuration):
 
     is_first = True
 
-    task_completion_hold_count = -1  # counter to collect 10 timesteps after reaching goal
+    # counter to collect 10 timesteps after reaching goal
+    task_completion_hold_count = -1
     device.start_control()
 
     # Loop until we get a reset from the input or the task completes
@@ -71,7 +72,7 @@ def collect_human_trajectory(env, device, arm, env_configuration):
             # We grab the initial model xml and state and reload from those so that
             # we can support deterministic playback of actions from our demonstrations.
             # This is necessary due to rounding issues with the model xml and with
-            # env.sim.forward(). We also have to do this after the first action is 
+            # env.sim.forward(). We also have to do this after the first action is
             # applied because the data collector wrapper only starts recording
             # after the first action has been played.
             initial_mjstate = env.sim.get_state().flatten()
@@ -150,7 +151,7 @@ def gather_demonstrations_as_hdf5(directory, out_dir, env_info):
             states.extend(dic["states"])
             for ai in dic["action_infos"]:
                 actions.append(ai["actions"])
-                
+
         if len(states) == 0:
             continue
 
@@ -192,21 +193,26 @@ if __name__ == "__main__":
         default=os.path.join(suite.models.assets_root, "demonstrations"),
     )
     parser.add_argument("--environment", type=str, default="Lift")
-    parser.add_argument("--robots", nargs="+", type=str, default="Panda", help="Which robot(s) to use in the env")
+    parser.add_argument("--robots", nargs="+", type=str,
+                        default="Panda", help="Which robot(s) to use in the env")
     parser.add_argument("--config", type=str, default="single-arm-opposed",
                         help="Specified environment configuration if necessary")
-    parser.add_argument("--arm", type=str, default="right", help="Which arm to control (eg bimanual) 'right' or 'left'")
-    parser.add_argument("--camera", type=str, default="agentview", help="Which camera to use for collecting demos")
+    parser.add_argument("--arm", type=str, default="right",
+                        help="Which arm to control (eg bimanual) 'right' or 'left'")
+    parser.add_argument("--camera", type=str, default="agentview",
+                        help="Which camera to use for collecting demos")
     parser.add_argument("--controller", type=str, default="OSC_POSE",
                         help="Choice of controller. Can be 'IK_POSE' or 'OSC_POSE'")
     parser.add_argument("--device", type=str, default="keyboard")
-    parser.add_argument("--pos-sensitivity", type=float, default=1.5, help="How much to scale position user inputs")
-    parser.add_argument("--rot-sensitivity", type=float, default=1.5, help="How much to scale rotation user inputs")
+    parser.add_argument("--pos-sensitivity", type=float, default=1.5,
+                        help="How much to scale position user inputs")
+    parser.add_argument("--rot-sensitivity", type=float, default=1.5,
+                        help="How much to scale rotation user inputs")
     args = parser.parse_args()
 
-
     # Get controller config
-    controller_config = load_controller_config(default_controller=args.controller)
+    controller_config = load_controller_config(
+        default_controller=args.controller)
 
     # Create argument configuration
     config = {
@@ -228,7 +234,7 @@ if __name__ == "__main__":
         ignore_done=True,
         use_camera_obs=False,
         gripper_visualizations=True,
-        reward_shaping=True,
+        reward_shaping=False,
         control_freq=20,
     )
 
@@ -243,14 +249,16 @@ if __name__ == "__main__":
     if args.device == "keyboard":
         from robosuite.devices import Keyboard
 
-        device = Keyboard(pos_sensitivity=args.pos_sensitivity, rot_sensitivity=args.rot_sensitivity)
+        device = Keyboard(pos_sensitivity=args.pos_sensitivity,
+                          rot_sensitivity=args.rot_sensitivity)
         env.viewer.add_keypress_callback("any", device.on_press)
         env.viewer.add_keyup_callback("any", device.on_release)
         env.viewer.add_keyrepeat_callback("any", device.on_press)
     elif args.device == "spacemouse":
         from robosuite.devices import SpaceMouse
 
-        device = SpaceMouse(pos_sensitivity=args.pos_sensitivity, rot_sensitivity=args.rot_sensitivity)
+        device = SpaceMouse(pos_sensitivity=args.pos_sensitivity,
+                            rot_sensitivity=args.rot_sensitivity)
     else:
         raise Exception(
             "Invalid device choice: choose either 'keyboard' or 'spacemouse'."
