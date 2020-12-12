@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+    <compiler angle="radian" coordinate="local" meshdir="stls" texturedir="textures"></compiler>
+    <option timestep="0.002">
+        <flag warmstart="enable"></flag>
+    </option>
+
+    <default>
+        <geom margin=".01" conaffinity="1" contype="1"/>
+    </default>
+
+    <visual>
+        <global offwidth="800" offheight="800" />
+    </visual>
+
+    <asset>
+        <material name="floor_mat" specular="0" shininess="0.5" reflectance="0" rgba="0.2 0.2 0.2 1"></material>
+        <material name="table_mat" specular="0" shininess="0.5" reflectance="0" rgba="0.93 0.93 0.93 1"></material>
+        <material name="block_mat" specular="0" shininess="0.5" reflectance="0" rgba="0.2 0.2 0.2 1"></material>
+    </asset>
+  
+    <worldbody>
+        <geom name="floor0" pos="0 0 0" size="2 2 1" type="plane" condim="3" material="floor_mat"></geom>
+
+        <body pos="0 0 0.2" name="table0">
+            <geom size="1 1 0.2" rgba=".1 .5 .1 1" type="box" mass="2000" material="table_mat"></geom>
+        </body>
+
+        <body pos="1 .8 0.3" name="edge0">
+            <geom size=".1 .2 0.3" type="box" priority = "100" solref="-1000 -.01" solimp="0.95 0.95 0.01" mass="2000" material="table_mat" condim="1" rgba=".79 .63 .44 1"></geom>
+        </body>
+
+        <body pos="1 0 0.3" name="edge1">
+            <geom size=".1 .4 0.3" type="box" priority = "100" solref="-1000 -.01" solimp="0.95 0.95 0.01" mass="2000" material="table_mat" condim="1"rgba=".79 .63 .44 1"></geom>
+        </body>
+        <body pos="1 -.8 0.3" name="edge2">
+            <geom size=".1 .2 0.3" type="box" priority = "100" solref="-1000 -.01" solimp="0.95 0.95 0.01" mass="2000" material="table_mat" condim="1"rgba=".79 .63 .44 1"></geom>
+        </body>
+
+
+        <body pos="-1 0 0.3" name="edge4">
+            <geom size=".1 1.05 0.3" type="box" priority = "100" solref="-1000 -.01" solimp="0.95 0.95 0.01"  mass="2000" material="table_mat" condim="1"rgba=".79 .63 .44 1"></geom>
+        </body>
+
+
+        <body pos="0 1 0.3" name="edge7">
+            <geom size="1.05 .1 0.3" type="box" priority = "100" solref="-1000 -.01" solimp="0.95 0.95 0.01"  mass="2000" material="table_mat" condim="1"rgba=".79 .63 .44 1"></geom>
+        </body>
+
+        <body pos="0 -1 0.3" name="edge10">
+            <geom size="1.05 .1 0.3" type="box" priority = "100" solref="-1000 -.01" solimp="0.95 0.95 0.01"  mass="2000" material="table_mat" condim="1"rgba=".79 .63 .44 1"></geom>
+        </body>
+
+        <body name="object0" pos="-0.225 0.025 0.4125">
+            <joint name="object0:joint" type="free"></joint>
+            <geom size="0.025 0.025 0.025" type="sphere" name="object0" material="block_mat" rgba="1 1 1 1" mass="5"></geom>
+        </body>
+
+        <body name="object1" pos="0.025 0.025 0.4125">
+            <joint name="object1:joint" type="free"></joint>
+            <geom size="0.025 0.025 0.025" type="sphere" name="object1" material="block_mat" rgba="1 1 0 1" mass="5"></geom>
+        </body>
+
+        <light directional="true" ambient="0.2 0.2 0.2" diffuse="0.8 0.8 0.8" specular="0.3 0.3 0.3" castshadow="false" pos="0 0 4" dir="0 0 -1" name="light0"></light>
+    </worldbody>
+</mujoco>
