@@ -1,8 +1,8 @@
-# Welcome to our dataset generation script! 
+#Welcome to our dataset generation script! 
 To run this, you probably need a Mac (haven't tested on any other device).
 Oh wait does this mean we can't run this on Rudi's linux machine? If we want to make it work we would need to install mujoco separately on his machine. Or we can generate the data and copy the data over via ssh (this could be time-consuming). 
 
-## How to: 
+##How to: 
 run make.
 run  ./generate_data pool.xml 3 10 1 (that last number is the amount of data points to generate)
 
