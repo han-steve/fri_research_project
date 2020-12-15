@@ -46,7 +46,7 @@ class MovingMNISTLightning(pl.LightningModule):
         super(MovingMNISTLightning, self).__init__()
 
         # default config
-        self.path = '/100_data_small'
+        self.path = '/tiny_data'
         # self.path = os.getcwd() + '/data'
         self.model = model
 

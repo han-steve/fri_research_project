@@ -13,7 +13,7 @@ def run_tensorboard(new_run):
     try:
         newest_folder = max(glob.glob(os.path.join(path, '*/')), key=os.path.getmtime)
         # version_number = newest_folder.split('\\')[-2].split('_')[1]
-        version_number = '4'
+        version_number = '9'
 
         if new_run:
             new_version_number = str(int(version_number) + 1)
