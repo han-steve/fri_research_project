@@ -1,0 +1,4 @@
+.idea/
+*.pyc
+./100_data
+./data/MNIST/
