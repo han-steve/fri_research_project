@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from torchvision import datasets, transforms
+import torch
 from PIL import Image
 
 
@@ -11,9 +12,9 @@ class PoolTable(object):
         self.seq_len = seq_len
         self.image_size = image_size
         self.channels = 1
-        path = os.getcwd() + data_root
+        self.path = os.getcwd() + data_root
         self.files = list(
-            map(lambda file: os.path.join(path, file), os.listdir(path)))
+            map(lambda file: os.path.join(self.path, file), os.listdir(self.path)))
 
     def __len__(self):
         return len(self.files)
@@ -50,6 +51,10 @@ class PoolTable(object):
         #               self.image_size,
         #               self.channels),
         #              dtype=np.float32)
+        pos = len(self.path) + 1
+        label = int(self.files[index][pos:pos+1])
+   
+        # label = torch.tensor([1, 0]) if label == 0 else torch.tensor([0, 1])
         x_arr = []
         with open(self.files[index], 'rb') as f:
             for frame in range(self.seq_len):
@@ -79,4 +84,4 @@ class PoolTable(object):
                                                       self.image_size,
                                                       self.image_size,
                                                       self.channels))
-        return np_x
+        return (np_x , label)
