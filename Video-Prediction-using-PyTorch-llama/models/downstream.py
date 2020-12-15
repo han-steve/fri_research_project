@@ -25,7 +25,7 @@ class DownstreamModel(nn.Module):
                                                hidden_dim=nf,
                                                kernel_size=(3, 3),
                                                bias=True)
-
+        
         self.w = torch.nn.Linear(64 * 64 * nf, 2)
 
     def autoencoder(self, x, seq_len, future_step, h_t, c_t, h_t2, c_t2, h_t3, c_t3, h_t4, c_t4):
