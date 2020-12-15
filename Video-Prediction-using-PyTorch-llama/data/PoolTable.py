@@ -26,6 +26,32 @@ class PoolTable(object):
         #              dtype=np.float32)
         x_arr = []
         with open(self.files[index], 'rb') as f:
+            i = 0
+            rgb = ()
+            while (byte := f.read(1)):
+                if (i > self.seq_len * self.image_size * self.image_size * 3):
+                    break
+                if len(rgb) == 3:
+                    x_arr.append(sum(rgb) / len(rgb) / 255)
+                    rgb = ()
+                rgb += (int.from_bytes(byte, "little"),)
+                i += 1
+
+        np_x = np.array(x_arr, dtype=np.float32).reshape((self.seq_len,
+                                                      self.image_size,
+                                                      self.image_size,
+                                                      self.channels))
+        print (np_x.shape)
+        return np_x
+
+    def __getitem__old__(self, index):
+        # x = np.empty((self.seq_len,
+        #               self.image_size,
+        #               self.image_size,
+        #               self.channels),
+        #              dtype=np.float32)
+        x_arr = []
+        with open(self.files[index], 'rb') as f:
             for frame in range(self.seq_len):
                 img = Image.new('L', (800, 800))
                 pixels = img.load()
@@ -54,5 +80,4 @@ class PoolTable(object):
                                                       self.image_size,
                                                       self.image_size,
                                                       self.channels))
-
         return np_x
