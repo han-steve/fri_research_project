@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
 parser.add_argument('--beta_1', type=float, default=0.9, help='decay rate 1')
 parser.add_argument('--beta_2', type=float, default=0.98, help='decay rate 2')
-parser.add_argument('--batch_size', default=12, type=int, help='batch size')
+parser.add_argument('--batch_size', default=1, type=int, help='batch size')
 parser.add_argument('--epochs', type=int, default=10,
                     help='number of epochs to train for')
 parser.add_argument('--use_amp', default=False, type=bool,
@@ -190,7 +190,7 @@ class DownstreamLightning(pl.LightningModule):
         self.log_images = True
 
         # Training config
-        self.criterion = torch.nn.MSELoss()
+        self.criterion = torch.nn.NLLLoss()
         self.batch_size = opt.batch_size
         self.n_steps_past = 4
         self.n_steps_ahead = 4  # 4
@@ -231,9 +231,10 @@ class DownstreamLightning(pl.LightningModule):
                      :], batch[:, self.n_steps_past:, :, :, :]
         x = x.permute(0, 1, 4, 2, 3)
         # label
-        y = [0]
-
-        y_hat = self.forward(x).squeeze()  # is squeeze neccessary?
+        y = torch.zeros(1).long()
+        
+        y_hat = self.forward(x)
+        print ("y_hat:", y_hat.shape)
 
         loss = self.criterion(y_hat, y)
 
@@ -242,13 +243,13 @@ class DownstreamLightning(pl.LightningModule):
         lr_saved = torch.scalar_tensor(lr_saved)
 
         # save predicted images every 250 global_step
-        if self.log_images:
-            if self.global_step % 1 == 0:
+        # if self.log_images:
+        #     if self.global_step % 1 == 0:
 
-                self.logger.experiment.add_image(
-                    'epoch_' + str(self.current_epoch) + '_step' +
-                    str(self.global_step))
-                plt.close()
+        #         self.logger.experiment.add_image(
+        #             'epoch_' + str(self.current_epoch) + '_step' +
+        #             str(self.global_step))
+        #         plt.close()
 
         tensorboard_logs = {'train_mse_loss': loss,
                             'learning_rate': lr_saved}
@@ -302,16 +303,17 @@ class DownstreamLightning(pl.LightningModule):
         return test_loader
 
 def run_trainer():
-    print(os.path.exists('./epoch=24.ckpt'))
-    ckpt = torch.load('./epoch=24.ckpt')
+    print(os.path.exists('./selfsupervised.ckpt'))
+    ckpt = torch.load('./selfsupervised.ckpt')
 
     # conv_lstm_model = EncoderDecoderConvLSTM(nf=opt.n_hidden_dim, in_chan=1)
     downstream_model = DownstreamModel(nf=opt.n_hidden_dim, in_chan=1)
+    print(downstream_model)
 
     # pretext task
     # model = MovingMNISTLightning(model=conv_lstm_model)
     # downstream task
-    downstream_model.load_state_dict(ckpt.state_dict(), strict=False)
+    downstream_model.load_state_dict(ckpt['state_dict'], strict=False)
     downstream_model= DownstreamLightning(model=downstream_model)
     trainer = Trainer(max_epochs=opt.epochs,
                       gpus=opt.n_gpus,
@@ -330,4 +332,3 @@ if __name__ == '__main__':
     p2.start()
     p1.join()
     p2.join()
-ꌀ
