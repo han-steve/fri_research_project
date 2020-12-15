@@ -13,7 +13,7 @@ from utils.start_tensorboard import run_tensorboard
 from models.seq2seq_ConvLSTM import EncoderDecoderConvLSTM
 from data.PoolTable import PoolTable
 from data.MovingMNIST import MovingMNIST
-from pytorch_lightning.callbacks import Callback
+import time
 
 import argparse
 
@@ -22,7 +22,7 @@ parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
 parser.add_argument('--beta_1', type=float, default=0.9, help='decay rate 1')
 parser.add_argument('--beta_2', type=float, default=0.98, help='decay rate 2')
 parser.add_argument('--batch_size', default=3, type=int, help='batch size')
-parser.add_argument('--epochs', type=int, default=300,
+parser.add_argument('--epochs', type=int, default=50,
                     help='number of epochs to train for')
 parser.add_argument('--use_amp', default=False, type=bool,
                     help='mixed-precision training')
@@ -44,6 +44,7 @@ class MovingMNISTLightning(pl.LightningModule):
 
         # default config
         self.path = '/100_data'
+        # self.path = os.getcwd() + '/data'
         self.model = model
 
         # logging config
@@ -56,26 +57,72 @@ class MovingMNISTLightning(pl.LightningModule):
         self.n_steps_ahead = 10  # 4
 
     def create_video(self, x, y_hat, y):
-        # predictions with input for illustration purposes
-        preds = torch.cat([x.cpu(), y_hat.unsqueeze(2).cpu()], dim=1)[0]
+        preds = torch.cat([x.cpu(), y_hat.unsqueeze(2).reshape(x.shape).cpu()], dim=1)[0]
 
         # entire input and ground truth
-        y_plot = torch.cat([x.cpu(), y.unsqueeze(2).cpu()], dim=1)[0]
+        y_plot = torch.cat([x.cpu(), y.unsqueeze(2).reshape(x.shape).cpu()], dim=1)[0]
 
         # error (l2 norm) plot between pred and ground truth
+        print(y_hat.shape)
+        print(y.shape)
+
+        print("fri")
+        print((y_hat[0] - y[0]).shape)
         difference = (torch.pow(y_hat[0] - y[0], 2)).detach().cpu()
+
+        print("Diff")
+        print(difference.shape)
+
         zeros = torch.zeros(difference.shape)
-        difference_plot = torch.cat([zeros.cpu().unsqueeze(0), difference.unsqueeze(0).cpu()], dim=1)[
+        print("Squeeze")
+        print(difference.unsqueeze(0).shape)
+
+        difference_plot = torch.cat([zeros.unsqueeze(0).cpu(), difference.unsqueeze(0).cpu()], dim=1)[
             0].unsqueeze(1)
+        print("diffplot")
+        print(difference_plot.shape)
 
         # concat all images
-        final_image = torch.cat([preds, y_plot, difference_plot], dim=0)
+        print(preds.shape)
+        print(y_plot.shape)
+        # print(difference_plot.shape)
+        # print(difference_plot.reshape(20, 1, 64, 64))
+
+        final_image = torch.cat([preds, y_plot], dim=0)
+        print("><")
+        print(final_image.shape)
 
         # make them into a single grid image file
         grid = torchvision.utils.make_grid(
             final_image, nrow=self.n_steps_past + self.n_steps_ahead)
 
         return grid
+        # predictions with input for illustration purposes
+        # preds = torch.cat([x.cpu(), y_hat.unsqueeze(2).cpu()], dim=1)[0]
+        #
+        # # entire input and ground truth
+        # y_plot = torch.cat([x.cpu(), y.unsqueeze(2).cpu()], dim=1)[0]
+        #
+        # # error (l2 norm) plot between pred and ground truth
+        # difference = (torch.pow(y_hat[0] - y[0], 2)).detach().cpu()
+        # zeros = torch.zeros(difference.shape)
+        # difference_plot = torch.cat([zeros.cpu().unsqueeze(0), difference.unsqueeze(0).cpu()], dim=1)[
+        #     0].unsqueeze(1)
+        #
+        # print(preds.shape)
+        # print(y_plot.shape)
+        # print(difference_plot.shape)
+        #
+        # # concat all images
+        # final_image = torch.cat([preds, y_plot, difference_plot], dim=0)
+        #
+        # print("ehello")
+        # print(final_image.shape)
+        #
+        # # make them into a single grid image file
+        # grid = torchvision.utils.make_grid(final_image, nrow=self.n_steps_past + self.n_steps_ahead)
+        #
+        # return grid
 
     def forward(self, x):
         x = x.to(device='cuda')
@@ -85,7 +132,6 @@ class MovingMNISTLightning(pl.LightningModule):
         return output
 
     def training_step(self, batch, batch_idx):
-        print(batch.shape, batch_idx)
         x, y = batch[:, 0:self.n_steps_past, :, :,
                      :], batch[:, self.n_steps_past:, :, :, :]
         x = x.permute(0, 1, 4, 2, 3)
@@ -101,7 +147,7 @@ class MovingMNISTLightning(pl.LightningModule):
 
         # save predicted images every 250 global_step
         if self.log_images:
-            if self.global_step % 250 == 0:
+            if self.global_step % 1 == 0:
                 final_image = self.create_video(x, y_hat, y)
 
                 self.logger.experiment.add_image(
@@ -137,19 +183,18 @@ class MovingMNISTLightning(pl.LightningModule):
             seq_len=self.n_steps_past + self.n_steps_ahead,
             image_size=64
         )
-
-        print(train_data.__len__())
-        print(train_data.__getitem__(90).shape)
+        # train_data = MovingMNIST(
+        #     train=True,
+        #     data_root=self.path,
+        #     seq_len=self.n_steps_past + self.n_steps_ahead,
+        #     image_size=64,
+        #     deterministic=True,
+        #     num_digits=2)
 
         train_loader = torch.utils.data.DataLoader(
             dataset=train_data,
             batch_size=self.batch_size,
             shuffle=True)
-        
-        print(train_loader)
-        print(len(train_loader))
-        my_iter = iter(train_loader)
-        print("next element:", next(my_iter))
 
         return train_loader
 
@@ -160,7 +205,6 @@ class MovingMNISTLightning(pl.LightningModule):
             seq_len=self.n_steps_past + self.n_steps_ahead,
             image_size=64
         )
-
         test_loader = torch.utils.data.DataLoader(
             dataset=test_data,
             batch_size=self.batch_size,
@@ -168,15 +212,6 @@ class MovingMNISTLightning(pl.LightningModule):
 
         return test_loader
 
-class MyCallBacks(Callback):
-    def on_init_end(self, trainer):
-        print('trainer is init now')
-    def on_train_start(self, trainer, pl_module):
-        print('training starting')
-    def on_train_epoch_start(self, trainer):
-        print('epoch starting')
-    def on_train_batch_start(self, trainer):
-        print('batch starting')
 
 def run_trainer():
     conv_lstm_model = EncoderDecoderConvLSTM(nf=opt.n_hidden_dim, in_chan=1)
@@ -187,8 +222,7 @@ def run_trainer():
                       gpus=opt.n_gpus,
                       distributed_backend='dp',
                       early_stop_callback=False,
-                      use_amp=opt.use_amp,
-                      callbacks=[MyCallBacks()]
+                      use_amp=opt.use_amp
                       )
 
     trainer.fit(model)
