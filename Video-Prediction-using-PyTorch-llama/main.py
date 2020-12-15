@@ -56,11 +56,10 @@ class MovingMNISTLightning(pl.LightningModule):
         # Training config
         self.criterion = torch.nn.MSELoss()
         self.batch_size = opt.batch_size
-        self.n_steps_past = 10 
-        self.n_steps_ahead = 4  # 4
+        self.n_steps_past = 5 
+        self.n_steps_ahead = 5  # 4
 
     def create_video(self, x, y_hat, y):
-        print(y_hat.shape)
         preds = torch.cat([x.cpu(), y_hat.unsqueeze(2).reshape(x.shape).cpu()], dim=1)[0]
 
         # entire input and ground truth

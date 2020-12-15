@@ -7,7 +7,7 @@ from PIL import Image
 class PoolTable(object):
     """Data Handler that read our generated dataset."""
 
-    def __init__(self, data_root="/100_data", seq_len=30, image_size=256):
+    def __init__(self, data_root="/100_data_small", seq_len=10, image_size=64):
         self.seq_len = seq_len
         self.image_size = image_size
         self.channels = 1
@@ -18,7 +18,7 @@ class PoolTable(object):
     def __len__(self):
         return len(self.files)
 
-    def __getitem__(self, index):
+    def __getitem__new(self, index):
         # x = np.empty((self.seq_len,
         #               self.image_size,
         #               self.image_size,
@@ -44,7 +44,7 @@ class PoolTable(object):
         print (np_x.shape)
         return np_x
 
-    def __getitem__old__(self, index):
+    def __getitem__(self, index):
         # x = np.empty((self.seq_len,
         #               self.image_size,
         #               self.image_size,
@@ -53,24 +53,23 @@ class PoolTable(object):
         x_arr = []
         with open(self.files[index], 'rb') as f:
             for frame in range(self.seq_len):
-                img = Image.new('L', (800, 800))
+                img = Image.new('L', (self.image_size, self.image_size))
                 pixels = img.load()
                 x = 0
-                y = 799
+                y = self.image_size - 1
                 rgb = ()
                 while (byte := f.read(1)):
                     if len(rgb) == 3:
                         pixels[x, y] = sum(rgb) // len(rgb)
                         rgb = ()
                         x += 1
-                        if x == 800:
+                        if x == self.image_size:
                             y -= 1
                             x = 0
                         if y == -1:
                             break
                     rgb += (int.from_bytes(byte, "little"),)
 
-                img = img.resize((self.image_size, self.image_size), Image.ANTIALIAS)
                 # height x width x channel
                 arr = np.array(img).astype(np.float32)
                 arr /= 255
