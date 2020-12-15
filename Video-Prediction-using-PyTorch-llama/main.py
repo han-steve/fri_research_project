@@ -63,35 +63,16 @@ class MovingMNISTLightning(pl.LightningModule):
         y_plot = torch.cat([x.cpu(), y.unsqueeze(2).reshape(x.shape).cpu()], dim=1)[0]
 
         # error (l2 norm) plot between pred and ground truth
-        print(y_hat.shape)
-        print(y.shape)
-
-        print("fri")
-        print((y_hat[0] - y[0]).shape)
         difference = (torch.pow(y_hat[0] - y[0], 2)).detach().cpu()
 
-        print("Diff")
-        print(difference.shape)
 
         zeros = torch.zeros(difference.shape)
-        print("Squeeze")
-        print(difference.unsqueeze(0).shape)
 
         difference_plot = torch.cat([zeros.unsqueeze(0).cpu(), difference.unsqueeze(0).cpu()], dim=1)[
             0].unsqueeze(1)
-        print("diffplot")
-        print(difference_plot.shape)
 
         # concat all images
-        print(preds.shape)
-        print(y_plot.shape)
-        # print(difference_plot.shape)
-        # print(difference_plot.reshape(20, 1, 64, 64))
-
         final_image = torch.cat([preds, y_plot], dim=0)
-        print("><")
-        print(final_image.shape)
-
         # make them into a single grid image file
         grid = torchvision.utils.make_grid(
             final_image, nrow=self.n_steps_past + self.n_steps_ahead)
