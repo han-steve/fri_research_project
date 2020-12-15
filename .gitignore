@@ -112,3 +112,7 @@ mjkey.txt
 .idea
 
 .pytest_cache/
+
+./Video-Prediction-using-PyTorch-llama/100_data
+./Video-Prediction-using-PyTorch-llama/data/MNIST
+./Video-Prediction-using-PyTorch-llama/lightning_logs
