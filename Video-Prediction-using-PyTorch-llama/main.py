@@ -91,7 +91,7 @@ class MovingMNISTLightning(pl.LightningModule):
         return output
 
     def training_step(self, batch, batch_idx):
-        x, y = batch[:, 0:self.n_steps_past, :, :,
+        x, y = batch[0][:, 0:self.n_steps_past, :, :,
                      :], batch[:, self.n_steps_past:, :, :, :]
         x = x.permute(0, 1, 4, 2, 3)
         y = y.squeeze()
@@ -122,7 +122,7 @@ class MovingMNISTLightning(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         # OPTIONAL
-        x, y = batch
+        x, y = batch[0]
         y_hat = self.forward(x)
         return {'test_loss': self.criterion(y_hat, y)}
 
