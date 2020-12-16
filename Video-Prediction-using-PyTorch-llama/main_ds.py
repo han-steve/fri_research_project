@@ -25,7 +25,7 @@ parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
 parser.add_argument('--beta_1', type=float, default=0.9, help='decay rate 1')
 parser.add_argument('--beta_2', type=float, default=0.98, help='decay rate 2')
 parser.add_argument('--batch_size', default=3, type=int, help='batch size')
-parser.add_argument('--epochs', type=int, default=69,
+parser.add_argument('--epochs', type=int, default=6,
                     help='number of epochs to train for')
 parser.add_argument('--use_amp', default=False, type=bool,
                     help='mixed-precision training')
@@ -90,17 +90,13 @@ class DownstreamLightning(pl.LightningModule):
         return output
 
     def training_step(self, batch, batch_idx):
-        x = batch[0][:, :, :, :, :]
+        x = batch[0][:, 0:5, :, :, :]
         x = x.permute(0, 1, 4, 2, 3)
         # label
         y = batch[1]
         
         y_hat = self.forward(x)
-        print(y.shape)
-        print ("y_hat:", y_hat.shape)
-
         loss = self.criterion(y_hat, y)
-        print("y: ", y, "y_hat: ", y_hat, "loss: ", loss)
         # save learning_rate
         lr_saved = self.trainer.optimizers[0].param_groups[-1]['lr']
         lr_saved = torch.scalar_tensor(lr_saved).cuda()
@@ -166,17 +162,17 @@ class DownstreamLightning(pl.LightningModule):
         return test_loader
 
 def run_trainer():
-    print(os.path.exists('./selfsupervised.ckpt'))
-    ckpt = torch.load('./selfsupervised.ckpt')
+    # print(os.path.exists('./selfsupervised.ckpt'))
+    # ckpt = torch.load('./selfsupervised.ckpt')
 
     # conv_lstm_model = EncoderDecoderConvLSTM(nf=opt.n_hidden_dim, in_chan=1)
     downstream_model = DownstreamModel(nf=opt.n_hidden_dim, in_chan=1)
-    # print(downstream_model)
+    print(downstream_model)
 
     # pretext task
     # model = MovingMNISTLightning(model=conv_lstm_model)
     # downstream task
-    downstream_model.load_state_dict(ckpt['state_dict'], strict=False)
+    # downstream_model.load_state_dict(ckpt['state_dict'], strict=False)
     downstream_model= DownstreamLightning(model=downstream_model)
     trainer = Trainer(max_epochs=opt.epochs,
                       gpus=opt.n_gpus,

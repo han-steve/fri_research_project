@@ -303,7 +303,7 @@ def run_trainer():
 
     conv_lstm_model = EncoderDecoderConvLSTM(nf=opt.n_hidden_dim, in_chan=1)
     # downstream_model = DownstreamModel(nf=opt.n_hidden_dim, in_chan=1)
-    # print(downstream_model)
+    print(conv_lstm_model)
 
     # pretext task
     model = MovingMNISTLightning(model=conv_lstm_model)
